@@ -12,7 +12,7 @@ This full-stack application consists of:
 - **Architecture**: Clean separation of concerns with scalable design
 
 ## Features
- 
+
 ### Frontend Capabilities
 - **User Authentication**: Registration, login, and logout functionality
 - **Protected Dashboard**: Personalized task management interface
