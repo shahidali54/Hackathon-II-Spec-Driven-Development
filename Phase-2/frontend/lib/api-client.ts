@@ -6,7 +6,7 @@ import {
 } from "@/types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL || "https://shahidali1-hackathon-backend.hf.space";
 
 export class ApiError extends Error {
   public statusCode: number;
