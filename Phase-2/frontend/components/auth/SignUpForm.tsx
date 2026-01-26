@@ -107,7 +107,6 @@
 // }
 
 
-
 "use client";
 
 import { useState } from "react";
@@ -156,32 +155,35 @@ export function SignUpForm() {
 
       await signIn(data.email, data.password);
       router.push("/dashboard");
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Signup failed");
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : "Signup failed");
     }
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      {submitError && (
+      {(submitError || error) && (
         <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
-          {submitError}
+          {submitError || error}
         </div>
       )}
 
       <Input
         label="First Name"
+        error={errors.first_name?.message}
         {...register("first_name", { required: "First name is required" })}
       />
 
       <Input
         label="Last Name"
+        error={errors.last_name?.message}
         {...register("last_name", { required: "Last name is required" })}
       />
 
       <Input
         label="Email"
         type="email"
+        error={errors.email?.message}
         {...register("email", {
           required: "Email is required",
           validate: (v) => isValidEmail(v) || "Invalid email",
@@ -191,15 +193,19 @@ export function SignUpForm() {
       <Input
         label="Password"
         type="password"
+        error={errors.password?.message}
+        helperText="Minimum 8 characters"
         {...register("password", {
-          required: true,
-          validate: (v) => isValidPassword(v) || "Min 8 characters",
+          required: "Password is required",
+          validate: (v) =>
+            isValidPassword(v) || "Minimum 8 characters",
         })}
       />
 
       <Input
         label="Confirm Password"
         type="password"
+        error={errors.confirmPassword?.message}
         {...register("confirmPassword", {
           validate: (v) => v === password || "Passwords do not match",
         })}
@@ -209,11 +215,15 @@ export function SignUpForm() {
         Create Account
       </Button>
 
-      <p className="text-center text-sm">
+      <p className="text-center text-sm text-zinc-600">
         Already have an account?{" "}
-        <Link href="/auth/signin" className="text-blue-600">
+        <Link href="/auth/signin" className="text-blue-600 font-medium">
           Sign in
         </Link>
+      </p>
+    </form>
+  );
+}
       </p>
     </form>
   );
