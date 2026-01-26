@@ -7,7 +7,7 @@ import type { AuthState } from "@/types";
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   signOut: () => void;
   clearError: () => void;
 }
@@ -47,12 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [router]);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (firstName: string, lastName: string, email: string, password: string) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
-      const { user } = await authSignUp(email, password); 
+      const { user } = await authSignUp(firstName, lastName, email, password);
       setState({ user, isAuthenticated: true, isLoading: false, error: null });
-      router.push("/dashboard"); 
+      router.push("/dashboard");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Sign up failed";
       setState(prev => ({ ...prev, isLoading: false, error: message }));
