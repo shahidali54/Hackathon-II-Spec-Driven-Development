@@ -2,7 +2,7 @@ import { User } from "@/types";
 
 const AUTH_TOKEN_KEY = "auth_token";
 const AUTH_USER_KEY = "auth_user";
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://shahidali1-separate-backend.hf.space/";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://shahidali1-separate-backend.hf.space";
 
 interface SignInResponse {
   user: User;
