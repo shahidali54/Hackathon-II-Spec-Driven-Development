@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import json
 
+
 class TodoAgent:
     """
     AI Agent for todo management using the OpenAI Functions API.
