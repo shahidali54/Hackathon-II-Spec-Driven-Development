@@ -1,0 +1,639 @@
+openapi: 3.0.3
+info:
+  title: Advanced Todo Chatbot API
+  description: API for the Advanced Todo Chatbot with support for recurring tasks, due dates, reminders, priorities, tags, search, filter, and sort
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.todo-chatbot.com
+    description: Production server
+paths:
+  /api/tasks:
+    get:
+      summary: Get all tasks for the authenticated user
+      description: Retrieve a list of tasks with optional filtering, search, and sorting
+      parameters:
+        - name: search
+          in: query
+          description: Search term to filter tasks by title or description
+          required: false
+          schema:
+            type: string
+        - name: priority
+          in: query
+          description: Filter tasks by priority level
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+        - name: tag
+          in: query
+          description: Filter tasks by tag
+          required: false
+          schema:
+            type: string
+        - name: due_date_from
+          in: query
+          description: Filter tasks with due date on or after this date
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: due_date_to
+          in: query
+          description: Filter tasks with due date on or before this date
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: completed
+          in: query
+          description: Filter tasks by completion status
+          required: false
+          schema:
+            type: boolean
+        - name: sort
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [title, created_at, due_date, priority]
+        - name: order
+          in: query
+          description: Sort order (asc or desc)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: limit
+          in: query
+          description: Limit the number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total:
+                    type: integer
+                    description: Total number of tasks matching the criteria
+                  offset:
+                    type: integer
+                    description: Offset used in the query
+                  limit:
+                    type: integer
+                    description: Limit used in the query
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+    post:
+      summary: Create a new task
+      description: Create a new task with optional priority, tags, due date, and recurrence rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+  /api/tasks/{id}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a specific task by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not have access to this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+    put:
+      summary: Update a task
+      description: Update an existing task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not have access to this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+    delete:
+      summary: Delete a task
+      description: Delete a specific task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not have access to this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+  /api/tasks/{id}/complete:
+    post:
+      summary: Mark a task as complete
+      description: Mark a task as complete and trigger any recurring task logic
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task marked as complete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden - user does not have access to this task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+  /api/tasks/search:
+    get:
+      summary: Search tasks
+      description: Search tasks by title, description, or tags
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Limit the number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total:
+                    type: integer
+                    description: Total number of tasks matching the search
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+  /api/tasks/filter:
+    get:
+      summary: Filter tasks
+      description: Filter tasks by multiple criteria
+      parameters:
+        - name: priority
+          in: query
+          description: Filter by priority level
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high, urgent]
+        - name: tags
+          in: query
+          description: Filter by tags (comma-separated)
+          required: false
+          schema:
+            type: string
+        - name: due_date_from
+          in: query
+          description: Filter by due date from
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: due_date_to
+          in: query
+          description: Filter by due date to
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: completed
+          in: query
+          description: Filter by completion status
+          required: false
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: Limit the number of results
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Filtered tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Task'
+                  total:
+                    type: integer
+                    description: Total number of tasks matching the filter
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+  /api/users/me:
+    get:
+      summary: Get current user
+      description: Retrieve information about the currently authenticated user
+      responses:
+        '200':
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - jwt_auth: []
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - completed
+        - created_by_user_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the task
+        title:
+          type: string
+          maxLength: 255
+          description: Task title
+        description:
+          type: string
+          description: Detailed description of the task
+        completed:
+          type: boolean
+          description: Whether the task is completed
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+          description: Priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags associated with the task
+        due_date:
+          type: string
+          format: date-time
+          description: Date and time when the task is due
+        recurrence_rule:
+          type: object
+          description: JSON object defining the recurrence pattern
+          properties:
+            frequency:
+              type: string
+              enum: [daily, weekly, monthly, yearly]
+            interval:
+              type: integer
+              minimum: 1
+            end_condition:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [after_count, on_date]
+                value:
+                  type: string
+                  format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was completed
+        created_by_user_id:
+          type: string
+          format: uuid
+          description: ID of the user who created the task
+        created_at:
+          type: string
+          format: date-time
+          description: When the task was created
+        updated_at:
+          type: string
+          format: date-time
+          description: When the task was last updated
+        reminder_sent:
+          type: boolean
+          default: false
+          description: Flag to track if a reminder has been sent
+
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          description: Task title
+        description:
+          type: string
+          description: Detailed description of the task
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          default: medium
+          description: Priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags associated with the task
+        due_date:
+          type: string
+          format: date-time
+          description: Date and time when the task is due
+        recurrence_rule:
+          type: object
+          description: JSON object defining the recurrence pattern
+          properties:
+            frequency:
+              type: string
+              enum: [daily, weekly, monthly, yearly]
+            interval:
+              type: integer
+              minimum: 1
+            end_condition:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [after_count, on_date]
+                value:
+                  type: string
+                  format: date-time
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 255
+          description: Task title
+        description:
+          type: string
+          description: Detailed description of the task
+        priority:
+          type: string
+          enum: [low, medium, high, urgent]
+          description: Priority level of the task
+        tags:
+          type: array
+          items:
+            type: string
+          description: Array of tags associated with the task
+        due_date:
+          type: string
+          format: date-time
+          description: Date and time when the task is due
+        completed:
+          type: boolean
+          description: Whether the task is completed
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the user
+        email:
+          type: string
+          format: email
+          description: User's email address
+        created_at:
+          type: string
+          format: date-time
+          description: When the user account was created
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code (optional)
+
+  securitySchemes:
+    jwt_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
