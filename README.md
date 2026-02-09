@@ -24,7 +24,7 @@ Multi-user web app with Next.js frontend, FastAPI backend, PostgreSQL database, 
 ### Phase III – AI Todo Chatbot
 AI chatbot interface using OpenAI Agents SDK and MCP server to manage todos conversationally.
 
-### Phase IV – Kubernetes Deployment (Pending)
+### Phase IV – Kubernetes Deployment
 Containerization and deployment on Minikube using Docker, Helm charts, and AI-assisted Kubernetes tools.
 
 ### Phase V – Advanced Cloud Deployment (Pending)
