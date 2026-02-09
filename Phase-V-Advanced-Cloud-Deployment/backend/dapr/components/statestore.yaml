@@ -1,0 +1,14 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: postgresql-state-store
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+  - name: connectionString
+    value: "host=localhost user=postgres password=your_password port=5432 database=todo_app"
+  - name: versionColumnType
+    value: "TEXT"
+  - name: tableName
+    value: "statestore"
